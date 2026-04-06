@@ -49,126 +49,170 @@ def _build_dashboard_config() -> dict[str, Any]:
     return {
         "views": [
             {
-                "title": "Wärmepumpe",
-                "path": "waermepumpe",
+                "title": "Übersicht",
+                "path": "uebersicht",
+                "type": "panel",
                 "cards": [
-                    # Row 1: Gauges
                     {
-                        "type": "horizontal-stack",
+                        "type": "vertical-stack",
                         "cards": [
+                            # ── Row 1: Key metrics ──
                             {
-                                "type": "gauge",
-                                "entity": _e("pv_share_percent"),
-                                "name": "PV-Anteil",
-                                "min": 0,
-                                "max": 100,
-                                "severity": {
-                                    "green": 60,
-                                    "yellow": 30,
-                                    "red": 0,
-                                },
-                                "needle": True,
-                            },
-                            {
-                                "type": "entity",
-                                "entity": _e("hp_total_power"),
-                                "name": "WP Leistung",
-                                "icon": "mdi:heat-pump",
-                            },
-                            {
-                                "type": "entity",
-                                "entity": _e("cost_total"),
-                                "name": "Kosten Netz",
-                                "icon": "mdi:currency-eur",
-                            },
-                            {
-                                "type": "entity",
-                                "entity": _e("savings_pv"),
-                                "name": "Ersparnis PV",
-                                "icon": "mdi:piggy-bank",
-                            },
-                        ],
-                    },
-                    # Row 2: Power history
-                    {
-                        "type": "history-graph",
-                        "title": "WP Leistung (24h)",
-                        "hours_to_show": 24,
-                        "entities": [
-                            {"entity": _e("hp_heat_power"), "name": "Heizung"},
-                            {"entity": _e("hp_dhw_power"), "name": "Warmwasser"},
-                        ],
-                    },
-                    # Row 3: PV vs Grid
-                    {
-                        "type": "history-graph",
-                        "title": "Energiequelle (24h)",
-                        "hours_to_show": 24,
-                        "entities": [
-                            {"entity": _e("hp_heat_from_pv"), "name": "Heizung PV"},
-                            {"entity": _e("hp_heat_from_grid"), "name": "Heizung Netz"},
-                            {"entity": _e("hp_dhw_from_pv"), "name": "WW PV"},
-                            {"entity": _e("hp_dhw_from_grid"), "name": "WW Netz"},
-                        ],
-                    },
-                    # Row 4: Daily bar charts
-                    {
-                        "type": "horizontal-stack",
-                        "cards": [
-                            {
-                                "type": "statistics-graph",
-                                "title": "Energie: PV vs. Netz",
-                                "period": "day",
-                                "stat_types": ["change"],
-                                "chart_type": "bar",
+                                "type": "glance",
+                                "title": "Wärmepumpe aktuell",
+                                "columns": 5,
+                                "show_state": True,
                                 "entities": [
-                                    {"entity": _e("energy_from_pv"), "name": "PV"},
-                                    {"entity": _e("energy_from_grid"), "name": "Netz"},
+                                    {
+                                        "entity": _e("pv_share_percent"),
+                                        "name": "PV-Anteil",
+                                    },
+                                    {
+                                        "entity": _e("hp_total_power"),
+                                        "name": "WP Leistung",
+                                    },
+                                    {
+                                        "entity": _e("energy_total"),
+                                        "name": "Energie gesamt",
+                                    },
+                                    {
+                                        "entity": _e("cost_total"),
+                                        "name": "Kosten Netz",
+                                    },
+                                    {
+                                        "entity": _e("savings_pv"),
+                                        "name": "Ersparnis PV",
+                                    },
                                 ],
                             },
+                            # ── Row 2: PV-Anteil Gauge + Leistung ──
                             {
-                                "type": "statistics-graph",
-                                "title": "Heizung vs. Warmwasser",
-                                "period": "day",
-                                "stat_types": ["change"],
-                                "chart_type": "bar",
-                                "entities": [
-                                    {"entity": _e("energy_heat_total"), "name": "Heizung"},
-                                    {"entity": _e("energy_dhw_total"), "name": "Warmwasser"},
+                                "type": "horizontal-stack",
+                                "cards": [
+                                    {
+                                        "type": "gauge",
+                                        "entity": _e("pv_share_percent"),
+                                        "name": "PV-Anteil",
+                                        "min": 0,
+                                        "max": 100,
+                                        "severity": {
+                                            "green": 60,
+                                            "yellow": 30,
+                                            "red": 0,
+                                        },
+                                        "needle": True,
+                                    },
+                                    {
+                                        "type": "gauge",
+                                        "entity": _e("hp_heat_power"),
+                                        "name": "Heizung",
+                                        "min": 0,
+                                        "max": 3000,
+                                        "needle": True,
+                                    },
+                                    {
+                                        "type": "gauge",
+                                        "entity": _e("hp_dhw_power"),
+                                        "name": "Warmwasser",
+                                        "min": 0,
+                                        "max": 3000,
+                                        "needle": True,
+                                    },
                                 ],
                             },
-                        ],
-                    },
-                    # Row 5: Costs
-                    {
-                        "type": "statistics-graph",
-                        "title": "Kosten & Ersparnis pro Tag",
-                        "period": "day",
-                        "stat_types": ["change"],
-                        "chart_type": "bar",
-                        "entities": [
-                            {"entity": _e("cost_total"), "name": "Stromkosten"},
-                            {"entity": _e("savings_pv"), "name": "PV-Ersparnis"},
-                        ],
-                    },
-                    # Row 6: Detail tables
-                    {
-                        "type": "horizontal-stack",
-                        "cards": [
+                            # ── Row 3: WP Leistungsverlauf ──
                             {
-                                "type": "entities",
-                                "title": "Leistung (W)",
+                                "type": "history-graph",
+                                "title": "WP Leistung (24h)",
+                                "hours_to_show": 24,
                                 "entities": [
-                                    {"entity": _e("hp_total_power"), "name": "Gesamt"},
                                     {"entity": _e("hp_heat_power"), "name": "Heizung"},
                                     {"entity": _e("hp_dhw_power"), "name": "Warmwasser"},
-                                    {"type": "divider"},
+                                ],
+                            },
+                            # ── Row 4: Energiequelle PV vs Netz ──
+                            {
+                                "type": "history-graph",
+                                "title": "Energiequelle (24h)",
+                                "hours_to_show": 24,
+                                "entities": [
                                     {"entity": _e("hp_heat_from_pv"), "name": "Heizung PV"},
                                     {"entity": _e("hp_heat_from_grid"), "name": "Heizung Netz"},
                                     {"entity": _e("hp_dhw_from_pv"), "name": "WW PV"},
                                     {"entity": _e("hp_dhw_from_grid"), "name": "WW Netz"},
                                 ],
                             },
+                            # ── Row 5: Balkendiagramme ──
+                            {
+                                "type": "horizontal-stack",
+                                "cards": [
+                                    {
+                                        "type": "statistics-graph",
+                                        "title": "Energie: PV vs. Netz",
+                                        "period": "day",
+                                        "days_to_show": 14,
+                                        "stat_types": ["change"],
+                                        "chart_type": "bar",
+                                        "entities": [
+                                            {"entity": _e("energy_from_pv"), "name": "PV"},
+                                            {"entity": _e("energy_from_grid"), "name": "Netz"},
+                                        ],
+                                    },
+                                    {
+                                        "type": "statistics-graph",
+                                        "title": "Heizung vs. Warmwasser",
+                                        "period": "day",
+                                        "days_to_show": 14,
+                                        "stat_types": ["change"],
+                                        "chart_type": "bar",
+                                        "entities": [
+                                            {"entity": _e("energy_heat_total"), "name": "Heizung"},
+                                            {"entity": _e("energy_dhw_total"), "name": "Warmwasser"},
+                                        ],
+                                    },
+                                ],
+                            },
+                            # ── Row 6: Kosten Balkendiagramm ──
+                            {
+                                "type": "statistics-graph",
+                                "title": "Kosten & Ersparnis pro Tag",
+                                "period": "day",
+                                "days_to_show": 14,
+                                "stat_types": ["change"],
+                                "chart_type": "bar",
+                                "entities": [
+                                    {"entity": _e("cost_total"), "name": "Stromkosten"},
+                                    {"entity": _e("savings_pv"), "name": "PV-Ersparnis"},
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+            {
+                "title": "Details",
+                "path": "details",
+                "type": "panel",
+                "cards": [
+                    {
+                        "type": "vertical-stack",
+                        "cards": [
+                            # ── Aktuelle Leistung ──
+                            {
+                                "type": "entities",
+                                "title": "Aktuelle Leistung",
+                                "entities": [
+                                    {"entity": _e("hp_total_power"), "name": "WP Gesamt"},
+                                    {"entity": _e("hp_heat_power"), "name": "Heizung"},
+                                    {"entity": _e("hp_dhw_power"), "name": "Warmwasser"},
+                                    {"type": "divider"},
+                                    {"entity": _e("hp_heat_from_pv"), "name": "Heizung aus PV"},
+                                    {"entity": _e("hp_heat_from_grid"), "name": "Heizung aus Netz"},
+                                    {"entity": _e("hp_dhw_from_pv"), "name": "Warmwasser aus PV"},
+                                    {"entity": _e("hp_dhw_from_grid"), "name": "Warmwasser aus Netz"},
+                                ],
+                            },
+                            # ── Energie ──
                             {
                                 "type": "entities",
                                 "title": "Energie (kWh)",
@@ -177,26 +221,33 @@ def _build_dashboard_config() -> dict[str, Any]:
                                     {"entity": _e("energy_heat_total"), "name": "Heizung"},
                                     {"entity": _e("energy_dhw_total"), "name": "Warmwasser"},
                                     {"type": "divider"},
-                                    {"entity": _e("energy_from_pv"), "name": "aus PV"},
-                                    {"entity": _e("energy_from_grid"), "name": "aus Netz"},
+                                    {"entity": _e("energy_from_pv"), "name": "davon aus PV"},
+                                    {"entity": _e("energy_from_grid"), "name": "davon aus Netz"},
+                                    {"type": "divider"},
+                                    {"entity": _e("energy_heat_from_pv"), "name": "Heizung aus PV"},
+                                    {"entity": _e("energy_heat_from_grid"), "name": "Heizung aus Netz"},
+                                    {"entity": _e("energy_dhw_from_pv"), "name": "Warmwasser aus PV"},
+                                    {"entity": _e("energy_dhw_from_grid"), "name": "Warmwasser aus Netz"},
                                 ],
                             },
+                            # ── Kosten ──
                             {
                                 "type": "entities",
-                                "title": "Kosten (EUR)",
+                                "title": "Kosten",
                                 "entities": [
-                                    {"entity": _e("cost_total"), "name": "Gesamt"},
-                                    {"entity": _e("cost_heat"), "name": "Heizung"},
-                                    {"entity": _e("cost_dhw"), "name": "Warmwasser"},
+                                    {"entity": _e("cost_total"), "name": "Gesamtkosten"},
+                                    {"entity": _e("cost_heat"), "name": "Heizung Kosten"},
+                                    {"entity": _e("cost_dhw"), "name": "Warmwasser Kosten"},
                                     {"type": "divider"},
-                                    {"entity": _e("savings_pv"), "name": "Ersparnis PV"},
+                                    {"entity": _e("savings_pv"), "name": "Ersparnis durch PV"},
+                                    {"entity": _e("pv_share_percent"), "name": "PV-Anteil"},
                                 ],
                             },
                         ],
                     },
                 ],
-            }
-        ]
+            },
+        ],
     }
 
 
@@ -217,13 +268,15 @@ async def async_create_dashboard(hass: HomeAssistant, entry: ConfigEntry) -> Non
 
     # Check if our dashboard already exists
     items = existing_dashboards.get("data", {}).get("items", [])
+    dashboard_exists = False
     for item in items:
         if item.get("url_path") == DASHBOARD_URL_PATH:
-            _LOGGER.info("Dashboard '%s' already exists", DASHBOARD_URL_PATH)
-            return
+            dashboard_exists = True
+            break
 
-    # Add our dashboard to the registry
-    items.append(
+    if not dashboard_exists:
+        # Add our dashboard to the registry
+        items.append(
         {
             "icon": "mdi:heat-pump",
             "id": DASHBOARD_URL_PATH,
@@ -235,24 +288,24 @@ async def async_create_dashboard(hass: HomeAssistant, entry: ConfigEntry) -> Non
         }
     )
 
-    if not existing_dashboards:
-        existing_dashboards = {
-            "version": 1,
-            "minor_version": 1,
-            "key": "lovelace_dashboards",
-            "data": {"items": items},
-        }
-    else:
-        existing_dashboards["data"]["items"] = items
+        if not existing_dashboards:
+            existing_dashboards = {
+                "version": 1,
+                "minor_version": 1,
+                "key": "lovelace_dashboards",
+                "data": {"items": items},
+            }
+        else:
+            existing_dashboards["data"]["items"] = items
 
-    try:
-        dashboards_file.write_text(json.dumps(existing_dashboards, indent=4))
-        _LOGGER.info("Registered dashboard '%s'", DASHBOARD_URL_PATH)
-    except OSError:
-        _LOGGER.warning("Could not write lovelace_dashboards file")
-        return
+        try:
+            dashboards_file.write_text(json.dumps(existing_dashboards, indent=4))
+            _LOGGER.info("Registered dashboard '%s'", DASHBOARD_URL_PATH)
+        except OSError:
+            _LOGGER.warning("Could not write lovelace_dashboards file")
+            return
 
-    # Write the dashboard config
+    # Always update the dashboard config (allows layout updates)
     config_file = storage_path / f"lovelace.{DASHBOARD_URL_PATH}"
     dashboard_storage = {
         "version": 1,
@@ -264,9 +317,10 @@ async def async_create_dashboard(hass: HomeAssistant, entry: ConfigEntry) -> Non
     try:
         config_file.write_text(json.dumps(dashboard_storage, indent=4))
         _LOGGER.info("Saved dashboard config for '%s'", DASHBOARD_URL_PATH)
-        _LOGGER.warning(
-            "Dashboard 'WP Energie' wurde erstellt. "
-            "Bitte Home Assistant einmal neu starten damit es in der Sidebar erscheint."
-        )
+        if not dashboard_exists:
+            _LOGGER.warning(
+                "Dashboard 'WP Energie' wurde erstellt. "
+                "Bitte Home Assistant einmal neu starten damit es in der Sidebar erscheint."
+            )
     except OSError:
         _LOGGER.warning("Could not write dashboard config file")
