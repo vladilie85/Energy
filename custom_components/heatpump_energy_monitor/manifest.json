@@ -1,0 +1,11 @@
+{
+  "domain": "heatpump_energy_monitor",
+  "name": "Heatpump Energy Monitor",
+  "codeowners": ["@Vladi"],
+  "config_flow": true,
+  "documentation": "http://172.30.30.11:3000/Vladi/Energy",
+  "integration_type": "service",
+  "iot_class": "local_push",
+  "requirements": [],
+  "version": "1.0.0"
+}

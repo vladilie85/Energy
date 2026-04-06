@@ -1,0 +1,35 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Select Source Sensors",
+        "description": "Select the sensors that provide power readings for your heat pump and energy system.",
+        "data": {
+          "hp_heat_power_entity": "Heat pump heating power sensor (W)",
+          "hp_dhw_power_entity": "Heat pump hot water power sensor (W)",
+          "pv_power_entity": "PV production power sensor (W)",
+          "grid_power_entity": "Grid power sensor (W)",
+          "grid_positive_import": "Grid sensor: positive value = import from grid"
+        }
+      },
+      "cost": {
+        "title": "Electricity Price",
+        "description": "Set the electricity price for cost calculation.",
+        "data": {
+          "electricity_price": "Electricity price (ct/kWh)"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Electricity Price",
+        "description": "Update the electricity price for cost calculation.",
+        "data": {
+          "electricity_price": "Electricity price (ct/kWh)"
+        }
+      }
+    }
+  }
+}

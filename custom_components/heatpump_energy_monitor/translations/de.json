@@ -1,0 +1,35 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Quell-Sensoren auswählen",
+        "description": "Wähle die Sensoren aus, die Leistungswerte deiner Wärmepumpe und Energieanlage liefern.",
+        "data": {
+          "hp_heat_power_entity": "Wärmepumpe Heizung Leistung (W)",
+          "hp_dhw_power_entity": "Wärmepumpe Warmwasser Leistung (W)",
+          "pv_power_entity": "PV-Erzeugung Leistung (W)",
+          "grid_power_entity": "Netz-Leistung (W)",
+          "grid_positive_import": "Netzsensor: positiver Wert = Bezug vom Netz"
+        }
+      },
+      "cost": {
+        "title": "Strompreis",
+        "description": "Strompreis für die Kostenberechnung festlegen.",
+        "data": {
+          "electricity_price": "Strompreis (ct/kWh)"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Strompreis",
+        "description": "Strompreis für die Kostenberechnung anpassen.",
+        "data": {
+          "electricity_price": "Strompreis (ct/kWh)"
+        }
+      }
+    }
+  }
+}
