@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 import logging
+from pathlib import Path
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -13,13 +15,8 @@ _LOGGER = logging.getLogger(__name__)
 DASHBOARD_URL_PATH = "heatpump-energy"
 
 
-def _build_entity_id(entry_id: str, key: str) -> str:
-    """Build the expected entity_id for a sensor key."""
-    # HA generates: sensor.<device_name_slug>_<sensor_name_slug>
-    # Device name is "Wärmepumpen-Energiemonitor", sensor names start with "WP ..."
-    # But with has_entity_name=True, HA uses: sensor.<device_slug>_<name_slug>
-    # We use unique_id based lookup instead - HA slugifies the name
-    # Format: sensor.warmepumpen_energiemonitor_wp_<rest>
+def _e(key: str) -> str:
+    """Build entity_id for a sensor key."""
     prefix = "sensor.warmepumpen_energiemonitor_"
     key_map = {
         "hp_total_power": "wp_gesamtleistung",
@@ -47,11 +44,6 @@ def _build_entity_id(entry_id: str, key: str) -> str:
     return prefix + key_map.get(key, key)
 
 
-def _e(key: str) -> str:
-    """Shortcut for entity ID."""
-    return _build_entity_id("", key)
-
-
 def _build_dashboard_config() -> dict[str, Any]:
     """Build the full Lovelace dashboard config."""
     return {
@@ -60,7 +52,7 @@ def _build_dashboard_config() -> dict[str, Any]:
                 "title": "Wärmepumpe",
                 "path": "waermepumpe",
                 "cards": [
-                    # ── Row 1: Gauges ──
+                    # Row 1: Gauges
                     {
                         "type": "horizontal-stack",
                         "cards": [
@@ -97,7 +89,7 @@ def _build_dashboard_config() -> dict[str, Any]:
                             },
                         ],
                     },
-                    # ── Row 2: Power history ──
+                    # Row 2: Power history
                     {
                         "type": "history-graph",
                         "title": "WP Leistung (24h)",
@@ -107,7 +99,7 @@ def _build_dashboard_config() -> dict[str, Any]:
                             {"entity": _e("hp_dhw_power"), "name": "Warmwasser"},
                         ],
                     },
-                    # ── Row 3: PV vs Grid power ──
+                    # Row 3: PV vs Grid
                     {
                         "type": "history-graph",
                         "title": "Energiequelle (24h)",
@@ -119,7 +111,7 @@ def _build_dashboard_config() -> dict[str, Any]:
                             {"entity": _e("hp_dhw_from_grid"), "name": "WW Netz"},
                         ],
                     },
-                    # ── Row 4: Daily energy bar charts ──
+                    # Row 4: Daily bar charts
                     {
                         "type": "horizontal-stack",
                         "cards": [
@@ -147,7 +139,7 @@ def _build_dashboard_config() -> dict[str, Any]:
                             },
                         ],
                     },
-                    # ── Row 5: Cost bar chart ──
+                    # Row 5: Costs
                     {
                         "type": "statistics-graph",
                         "title": "Kosten & Ersparnis pro Tag",
@@ -159,7 +151,7 @@ def _build_dashboard_config() -> dict[str, Any]:
                             {"entity": _e("savings_pv"), "name": "PV-Ersparnis"},
                         ],
                     },
-                    # ── Row 6: Detail tables ──
+                    # Row 6: Detail tables
                     {
                         "type": "horizontal-stack",
                         "cards": [
@@ -209,48 +201,72 @@ def _build_dashboard_config() -> dict[str, Any]:
 
 
 async def async_create_dashboard(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Create the WP energy dashboard automatically."""
+    """Create the WP energy dashboard by writing to HA .storage."""
+    storage_path = Path(hass.config.path(".storage"))
+
+    # Check if dashboard is already registered
+    dashboards_file = storage_path / "lovelace_dashboards"
+    existing_dashboards: dict[str, Any] = {}
+
+    if dashboards_file.exists():
+        try:
+            existing_dashboards = json.loads(dashboards_file.read_text())
+        except (json.JSONDecodeError, OSError):
+            _LOGGER.warning("Could not read lovelace_dashboards file")
+            return
+
+    # Check if our dashboard already exists
+    items = existing_dashboards.get("data", {}).get("items", [])
+    for item in items:
+        if item.get("url_path") == DASHBOARD_URL_PATH:
+            _LOGGER.info("Dashboard '%s' already exists", DASHBOARD_URL_PATH)
+            return
+
+    # Add our dashboard to the registry
+    items.append(
+        {
+            "icon": "mdi:heat-pump",
+            "id": DASHBOARD_URL_PATH,
+            "mode": "storage",
+            "require_admin": False,
+            "show_in_sidebar": True,
+            "title": "WP Energie",
+            "url_path": DASHBOARD_URL_PATH,
+        }
+    )
+
+    if not existing_dashboards:
+        existing_dashboards = {
+            "version": 1,
+            "minor_version": 1,
+            "key": "lovelace_dashboards",
+            "data": {"items": items},
+        }
+    else:
+        existing_dashboards["data"]["items"] = items
+
     try:
-        lovelace_data = hass.data.get("lovelace")
-        if not lovelace_data:
-            _LOGGER.debug("Lovelace not available, skipping dashboard creation")
-            return
+        dashboards_file.write_text(json.dumps(existing_dashboards, indent=4))
+        _LOGGER.info("Registered dashboard '%s'", DASHBOARD_URL_PATH)
+    except OSError:
+        _LOGGER.warning("Could not write lovelace_dashboards file")
+        return
 
-        dashboards = lovelace_data.get("dashboards", {})
+    # Write the dashboard config
+    config_file = storage_path / f"lovelace.{DASHBOARD_URL_PATH}"
+    dashboard_storage = {
+        "version": 1,
+        "minor_version": 1,
+        "key": f"lovelace.{DASHBOARD_URL_PATH}",
+        "data": {"config": _build_dashboard_config()},
+    }
 
-        # Dashboard already exists
-        if DASHBOARD_URL_PATH in dashboards:
-            _LOGGER.debug("Dashboard '%s' already exists", DASHBOARD_URL_PATH)
-            return
-
-        # Create the dashboard entry
-        collection = lovelace_data.get("dashboards_collection")
-        if not collection:
-            _LOGGER.debug("No dashboards_collection, skipping dashboard creation")
-            return
-
-        await collection.async_create_item(
-            {
-                "url_path": DASHBOARD_URL_PATH,
-                "title": "WP Energie",
-                "icon": "mdi:heat-pump",
-                "show_in_sidebar": True,
-                "require_admin": False,
-                "mode": "storage",
-            }
-        )
-
-        _LOGGER.info("Created dashboard '%s'", DASHBOARD_URL_PATH)
-
-        # Now save the dashboard content
-        dashboard_obj = lovelace_data["dashboards"].get(DASHBOARD_URL_PATH)
-        if dashboard_obj and hasattr(dashboard_obj, "async_save"):
-            await dashboard_obj.async_save(_build_dashboard_config())
-            _LOGGER.info("Saved dashboard config for '%s'", DASHBOARD_URL_PATH)
-
-    except Exception:
+    try:
+        config_file.write_text(json.dumps(dashboard_storage, indent=4))
+        _LOGGER.info("Saved dashboard config for '%s'", DASHBOARD_URL_PATH)
         _LOGGER.warning(
-            "Could not auto-create dashboard. You can manually create it "
-            "using the YAML from dashboard/heatpump_energy_dashboard.yaml",
-            exc_info=True,
+            "Dashboard 'WP Energie' wurde erstellt. "
+            "Bitte Home Assistant einmal neu starten damit es in der Sidebar erscheint."
         )
+    except OSError:
+        _LOGGER.warning("Could not write dashboard config file")
