@@ -157,6 +157,18 @@ async def async_setup_entry(
             HeatpumpCostSensor(coordinator, config_entry, sensor_def)
         )
 
+    entities.append(
+        HeatpumpPercentSensor(
+            coordinator,
+            config_entry,
+            {
+                "key": "pv_share_percent",
+                "name": "WP PV-Anteil",
+                "icon": "mdi:solar-power-variant",
+            },
+        )
+    )
+
     async_add_entities(entities)
 
 
@@ -257,3 +269,16 @@ class HeatpumpCostSensor(HeatpumpBaseSensor):
     def native_value(self) -> float:
         """Return the cumulative cost value."""
         return round(getattr(self._coordinator.data, self._key, 0.0), 2)
+
+
+class HeatpumpPercentSensor(HeatpumpBaseSensor):
+    """Sensor for percentage values (%)."""
+
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = "%"
+    _attr_suggested_display_precision = 0
+
+    @property
+    def native_value(self) -> float:
+        """Return the percentage value."""
+        return round(getattr(self._coordinator.data, self._key, 0.0), 1)

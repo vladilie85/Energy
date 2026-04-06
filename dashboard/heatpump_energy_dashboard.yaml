@@ -1,0 +1,155 @@
+title: Wärmepumpe Energie
+views:
+  - title: Wärmepumpe
+    path: waermepumpe
+    type: sections
+    sections:
+      # ── Linke Spalte: Diagramme ──
+      - type: grid
+        cards:
+          # Aktuelle Leistung (W) - Verlauf
+          - type: history-graph
+            title: WP Leistung aktuell
+            hours_to_show: 24
+            entities:
+              - entity: sensor.warmepumpen_energiemonitor_wp_gesamtleistung
+                name: Gesamt
+              - entity: sensor.warmepumpen_energiemonitor_wp_heizung_leistung
+                name: Heizung
+              - entity: sensor.warmepumpen_energiemonitor_wp_warmwasser_leistung
+                name: Warmwasser
+
+          # Energie aus PV vs Netz - Verlauf
+          - type: history-graph
+            title: Energiequelle (PV vs. Netz)
+            hours_to_show: 24
+            entities:
+              - entity: sensor.warmepumpen_energiemonitor_wp_heizung_aus_pv
+                name: Heizung PV
+              - entity: sensor.warmepumpen_energiemonitor_wp_heizung_aus_netz
+                name: Heizung Netz
+              - entity: sensor.warmepumpen_energiemonitor_wp_warmwasser_aus_pv
+                name: Warmwasser PV
+              - entity: sensor.warmepumpen_energiemonitor_wp_warmwasser_aus_netz
+                name: Warmwasser Netz
+
+          # Statistik-Diagramm Energie (Balken pro Tag)
+          - type: statistics-graph
+            title: WP Energieverbrauch (PV vs. Netz)
+            period: day
+            stat_types:
+              - change
+            chart_type: bar
+            entities:
+              - entity: sensor.warmepumpen_energiemonitor_wp_energie_aus_pv
+                name: aus PV
+              - entity: sensor.warmepumpen_energiemonitor_wp_energie_aus_netz
+                name: aus Netz
+
+          # Statistik-Diagramm Heizung vs Warmwasser
+          - type: statistics-graph
+            title: Heizung vs. Warmwasser
+            period: day
+            stat_types:
+              - change
+            chart_type: bar
+            entities:
+              - entity: sensor.warmepumpen_energiemonitor_wp_heizung_energie
+                name: Heizung
+              - entity: sensor.warmepumpen_energiemonitor_wp_warmwasser_energie
+                name: Warmwasser
+
+          # Kosten pro Tag (Balken)
+          - type: statistics-graph
+            title: Kosten pro Tag
+            period: day
+            stat_types:
+              - change
+            chart_type: bar
+            entities:
+              - entity: sensor.warmepumpen_energiemonitor_wp_gesamtkosten
+                name: Stromkosten
+              - entity: sensor.warmepumpen_energiemonitor_wp_ersparnis_durch_pv
+                name: PV-Ersparnis
+
+      # ── Rechte Spalte: Übersicht & Kosten ──
+      - type: grid
+        cards:
+          # PV-Anteil Gauge
+          - type: gauge
+            title: PV-Anteil aktuell
+            entity: sensor.warmepumpen_energiemonitor_wp_pv_anteil
+            min: 0
+            max: 100
+            severity:
+              green: 60
+              yellow: 30
+              red: 0
+            needle: true
+            unit: "%"
+
+          # Aktuelle Leistung
+          - type: entities
+            title: Aktuelle Leistung
+            entities:
+              - entity: sensor.warmepumpen_energiemonitor_wp_gesamtleistung
+                name: WP Gesamt
+                icon: mdi:heat-pump
+              - entity: sensor.warmepumpen_energiemonitor_wp_heizung_leistung
+                name: Heizung
+                icon: mdi:radiator
+              - entity: sensor.warmepumpen_energiemonitor_wp_warmwasser_leistung
+                name: Warmwasser
+                icon: mdi:water-boiler
+              - type: divider
+              - entity: sensor.warmepumpen_energiemonitor_wp_heizung_aus_pv
+                name: "Heizung aus PV"
+                icon: mdi:solar-power
+              - entity: sensor.warmepumpen_energiemonitor_wp_heizung_aus_netz
+                name: "Heizung aus Netz"
+                icon: mdi:transmission-tower
+              - entity: sensor.warmepumpen_energiemonitor_wp_warmwasser_aus_pv
+                name: "Warmwasser aus PV"
+                icon: mdi:solar-power
+              - entity: sensor.warmepumpen_energiemonitor_wp_warmwasser_aus_netz
+                name: "Warmwasser aus Netz"
+                icon: mdi:transmission-tower
+
+          # Energie Zusammenfassung
+          - type: entities
+            title: Energie (kWh)
+            entities:
+              - entity: sensor.warmepumpen_energiemonitor_wp_gesamtenergie
+                name: WP Gesamt
+                icon: mdi:heat-pump
+              - entity: sensor.warmepumpen_energiemonitor_wp_heizung_energie
+                name: Heizung
+                icon: mdi:radiator
+              - entity: sensor.warmepumpen_energiemonitor_wp_warmwasser_energie
+                name: Warmwasser
+                icon: mdi:water-boiler
+              - type: divider
+              - entity: sensor.warmepumpen_energiemonitor_wp_energie_aus_pv
+                name: davon aus PV
+                icon: mdi:solar-power
+              - entity: sensor.warmepumpen_energiemonitor_wp_energie_aus_netz
+                name: davon aus Netz
+                icon: mdi:transmission-tower
+
+          # Kosten
+          - type: entities
+            title: Kosten
+            entities:
+              - entity: sensor.warmepumpen_energiemonitor_wp_gesamtkosten
+                name: Gesamtkosten
+                icon: mdi:currency-eur
+              - entity: sensor.warmepumpen_energiemonitor_wp_heizung_kosten
+                name: Heizung
+                icon: mdi:currency-eur
+              - entity: sensor.warmepumpen_energiemonitor_wp_warmwasser_kosten
+                name: Warmwasser
+                icon: mdi:currency-eur
+              - type: divider
+              - entity: sensor.warmepumpen_energiemonitor_wp_ersparnis_durch_pv
+                name: Ersparnis durch PV
+                icon: mdi:piggy-bank

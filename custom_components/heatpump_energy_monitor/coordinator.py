@@ -36,6 +36,7 @@ class EnergyData:
     hp_heat_from_grid: float = 0.0
     hp_dhw_from_pv: float = 0.0
     hp_dhw_from_grid: float = 0.0
+    pv_share_percent: float = 0.0
 
     # Cumulative energy (kWh)
     energy_heat_total: float = 0.0
@@ -167,6 +168,12 @@ class HeatpumpEnergyCoordinator:
         dhw_from_pv = hp_from_pv_total * dhw_ratio
         dhw_from_grid = hp_from_grid_total * dhw_ratio
 
+        # PV share percentage
+        if hp_total > 0:
+            pv_percent = (hp_from_pv_total / hp_total) * 100.0
+        else:
+            pv_percent = 0.0
+
         # Update instantaneous power values
         self.data.hp_heat_power = hp_heat
         self.data.hp_dhw_power = hp_dhw
@@ -175,6 +182,7 @@ class HeatpumpEnergyCoordinator:
         self.data.hp_heat_from_grid = heat_from_grid
         self.data.hp_dhw_from_pv = dhw_from_pv
         self.data.hp_dhw_from_grid = dhw_from_grid
+        self.data.pv_share_percent = pv_percent
 
         # Riemann integration (trapezoidal) for energy accumulation
         if self._last_update is not None:
