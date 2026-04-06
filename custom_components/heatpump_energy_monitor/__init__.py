@@ -9,6 +9,7 @@ from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
 from .coordinator import HeatpumpEnergyCoordinator
+from .dashboard import async_create_dashboard
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,6 +31,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
+
+    # Auto-create dashboard on first setup
+    await async_create_dashboard(hass, entry)
 
     return True
 
